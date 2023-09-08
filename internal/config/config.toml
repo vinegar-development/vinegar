@@ -2,7 +2,7 @@
 # DO NOT EDIT; unless you know what you are doing,
 # use the existing configuration file.
 
-dxvk_version = "2.3"
+dxvk_url = "https://github.com/doitsujin/dxvk/releases/download/v2.3/dxvk-2.3.tar.gz"
 
 [env]
 WINEARCH = "win64"

@@ -10,12 +10,11 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/vinegarhq/vinegar/util"
 	"github.com/vinegarhq/vinegar/wine"
 )
-
-const Repo = "https://github.com/doitsujin/dxvk"
 
 func Setenv() {
 	log.Printf("Enabling DXVK DLL overrides")
@@ -23,22 +22,26 @@ func Setenv() {
 	os.Setenv("WINEDLLOVERRIDES", os.Getenv("WINEDLLOVERRIDES")+";d3d10core=n;d3d11=n;d3d9=n;dxgi=n")
 }
 
-func Fetch(name string, ver string) error {
-	url := fmt.Sprintf("%s/releases/download/v%[2]s/dxvk-%[2]s.tar.gz", Repo, ver)
+func Fetch(dir string, url string) (string, error) {
+	tokens := strings.Split(url, "/")
+	file := tokens[len(tokens)-1]
+	path := filepath.Join(dir, file)
 
-	if _, err := os.Stat(name); errors.Is(err, os.ErrNotExist) {
-		log.Printf("Downloading DXVK %s", ver)
-
-		if err := util.Download(url, name); err != nil {
-			return fmt.Errorf("failed to download DXVK: %w", err)
-		}
-	} else if err == nil {
-		log.Printf("DXVK %s is already downloaded", ver)
-	} else {
-		return err
+	if file == "" {
+		return "", fmt.Errorf("failed to get filename from url: %s", url)
 	}
 
-	return nil
+	if _, err := os.Stat(path); err == nil {
+		log.Printf("DXVK is already downloaded (%s)", path)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return "", err
+	}
+
+	if err := util.Download(url, path); err != nil {
+		return "", fmt.Errorf("failed to download DXVK: %w", err)
+	}
+
+	return path, nil
 }
 
 func Remove(pfx *wine.Prefix) error {

@@ -22,7 +22,7 @@ type ApplicationState struct {
 type ApplicationStates map[string]ApplicationState
 
 type State struct {
-	DxvkVersion  string
+	DxvkURL      string
 	Applications ApplicationStates
 }
 
@@ -88,7 +88,7 @@ func SaveManifest(manif *bootstrapper.Manifest) error {
 	return Save(&state)
 }
 
-func SaveDxvk(ver string) error {
+func SaveDxvk(url string) error {
 	log.Printf("Saving installed DXVK State")
 
 	state, err := Load()
@@ -96,7 +96,7 @@ func SaveDxvk(ver string) error {
 		return err
 	}
 
-	state.DxvkVersion = ver
+	state.DxvkURL = url
 
 	return Save(&state)
 }
@@ -151,11 +151,11 @@ func ClearApplications() error {
 	return Save(&state)
 }
 
-func DxvkVersion() (string, error) {
+func DxvkURL() (string, error) {
 	states, err := Load()
 	if err != nil {
 		return "", err
 	}
 
-	return states.DxvkVersion, nil
+	return states.DxvkURL, nil
 }

@@ -31,7 +31,7 @@ type Application struct {
 type Config struct {
 	Launcher          string      `toml:"launcher"`
 	WineRoot          string      `toml:"wineroot"`
-	DxvkVersion       string      `toml:"dxvk_version"`
+	DxvkURL           string      `toml:"dxvk_url"`
 	MultipleInstances bool        `toml:"multiple_instances"`
 	SanitizeEnv       bool        `toml:"sanitize_env"`
 	Player            Application `toml:"player"`
