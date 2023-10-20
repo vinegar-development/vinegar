@@ -31,6 +31,10 @@ type Version struct {
 	GUID    string
 }
 
+func (v Version) String() string {
+	return v.Channel + " " + v.GUID
+}
+
 func ChannelPath(channel string) string {
 	// Ensure that the channel is lowercased, since internally in
 	// ClientSettings it will be lowercased, but not on the deploy mirror.

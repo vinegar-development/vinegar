@@ -61,6 +61,8 @@ func NewBinary(bt roblox.BinaryType, cfg *config.Config, pfx *wine.Prefix) Binar
 }
 
 func (b *Binary) Run(args ...string) error {
+	b.Splash.Log("")
+
 	cmd, err := b.Command(args...)
 	if err != nil {
 		return err
@@ -75,6 +77,7 @@ func (b *Binary) Run(args ...string) error {
 	// auto kill prefix is enabled
 	if util.CommFound("Roblox") {
 		log.Println("Roblox is already running, not killing wineprefix after exit")
+		b.Splash.Log("Roblox is already running")
 		kill = false
 	}
 
@@ -188,7 +191,7 @@ func (b *Binary) Setup() error {
 		return err
 	}
 
-	b.Splash.Desc(fmt.Sprintf("%s %s", ver.GUID, ver.Channel))
+	b.Splash.Desc(ver.String())
 	b.Version = ver
 	b.Dir = filepath.Join(dirs.Versions, ver.GUID)
 
@@ -197,26 +200,32 @@ func (b *Binary) Setup() error {
 		log.Printf("Failed to retrieve stored %s version: %s", b.Name, err)
 	}
 
+	stateVer = ""
+
 	if stateVer != ver.GUID {
-		log.Printf("Installing %s (%s -> %s)", b.Name, stateVer, ver)
+		log.Printf("Installing %s (%s -> %s)", b.Name, stateVer, ver.GUID)
 
 		if err := b.Install(); err != nil {
 			return err
 		}
 	} else {
+		b.Splash.Log("Up to date")
 		log.Printf("%s is up to date (%s)", b.Name, ver.GUID)
 	}
 
 	b.Config.Env.Setenv()
 
+	b.Splash.Log("Setting Renderer")
 	if err := b.Config.FFlags.SetRenderer(b.Config.Renderer); err != nil {
 		return err
 	}
 
+	b.Splash.Log("Applying FFlags")
 	if err := b.Config.FFlags.Apply(b.Dir); err != nil {
 		return err
 	}
 
+	b.Splash.Log("Applying Overlay modifications")
 	if err := dirs.OverlayDir(b.Dir); err != nil {
 		return err
 	}
@@ -236,6 +245,7 @@ func (b *Binary) Install() error {
 		return err
 	}
 
+	b.Splash.Log("Fetching package manifest")
 	manifest, err := bootstrapper.FetchManifest(&b.Version)
 	if err != nil {
 		return err
@@ -264,6 +274,7 @@ func (b *Binary) Install() error {
 		}
 	}
 
+	b.Splash.Log("Writing AppSettings")
 	if err := bootstrapper.WriteAppSettings(b.Dir); err != nil {
 		return err
 	}
@@ -272,6 +283,7 @@ func (b *Binary) Install() error {
 		return err
 	}
 
+	b.Splash.Log("Cleaning up")
 	if err := state.CleanPackages(); err != nil {
 		return err
 	}
@@ -284,6 +296,8 @@ func (b *Binary) PerformPackages(m *bootstrapper.Manifest, fn func(bootstrapper.
 	pkgsLen := len(m.Packages)
 
 	return m.Packages.Perform(func(pkg bootstrapper.Package) error {
+		b.Splash.Log(pkg.Name)
+
 		err := fn(pkg)
 		if err != nil {
 			return err
@@ -291,6 +305,7 @@ func (b *Binary) PerformPackages(m *bootstrapper.Manifest, fn func(bootstrapper.
 
 		donePkgs++
 		b.Splash.Progress(float32(donePkgs) / float32(pkgsLen))
+		b.Splash.Log(pkg.Name)
 
 		return nil
 	})
@@ -373,6 +388,8 @@ func (b *Binary) Command(args ...string) (*wine.Cmd, error) {
 	}
 
 	if b.GlobalConfig.MultipleInstances {
+		b.Splash.Log("Launching robloxmutexer")
+
 		mutexer := b.Prefix.Command("wine", filepath.Join(BinPrefix, "robloxmutexer.exe"))
 		err := mutexer.Start()
 		if err != nil {
@@ -380,7 +397,8 @@ func (b *Binary) Command(args ...string) (*wine.Cmd, error) {
 		}
 	}
 
-	cmd := b.Prefix.Wine(filepath.Join(b.Dir, b.Type.Executable()), args...)
+	exe := filepath.Join(b.Dir, b.Type.Executable())
+	cmd := b.Prefix.Wine(exe, args...)
 
 	launcher := strings.Fields(b.Config.Launcher)
 	if len(launcher) >= 1 {

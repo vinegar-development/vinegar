@@ -37,6 +37,7 @@ type Splash struct {
 
 	logo     image.Image
 	message  string
+	log      string
 	desc     string
 	showLog  string
 	progress float32
@@ -45,6 +46,11 @@ type Splash struct {
 
 func (ui *Splash) Message(msg string) {
 	ui.message = msg
+	ui.Invalidate()
+}
+
+func (ui *Splash) Log(msg string) {
+	ui.log = msg
 	ui.Invalidate()
 }
 
@@ -151,6 +157,16 @@ func (ui *Splash) Run() error {
 							pb.TrackColor = rgb(ui.Config.Gray1)
 							return pb.Layout(gtx)
 						})
+					}),
+
+					layout.Rigid(func(gtx C) D {
+						if ui.log == "" {
+							return D{}
+						}
+
+						info := material.Body2(ui.Theme, ui.log)
+						info.Color = ui.Theme.Palette.ContrastFg
+						return info.Layout(gtx)
 					}),
 
 					layout.Rigid(func(gtx C) D {
