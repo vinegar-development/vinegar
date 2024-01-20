@@ -18,12 +18,13 @@ var embeddedDisplays = []string{"eDP", "LVDS"}
 func getCards() (cs []Card) {
 	drmCards, _ := filepath.Glob(path.Join(drmPath, "card[0-9]"))
 
-	for _, c := range drmCards {
+	for i, c := range drmCards {
 		dev, _ := filepath.EvalSymlinks(path.Join(c, "device"))
 		driver, _ := filepath.EvalSymlinks(path.Join(dev, "driver"))
 		driver = path.Base(driver)
 
 		cs = append(cs, Card{
+			Index:    i,
 			Path:     c,
 			Device:   dev,
 			Driver:   driver,
