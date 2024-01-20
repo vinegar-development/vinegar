@@ -34,7 +34,7 @@ func channelPath(channel string) string {
 	if channel == strings.ToLower(DefaultChannel) {
 		return "/"
 	}
-	
+
 	return "/channel/" + channel + "/"
 }
 

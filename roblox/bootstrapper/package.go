@@ -61,6 +61,6 @@ func (p *Package) Extract(src, dest string) error {
 		return fmt.Errorf("extract package %s (%s): %w", p.Name, src, err)
 	}
 
-	log.Printf("Extracted Package %s (%s)", p.Name, p.Checksum)
+	log.Printf("Extracted Package %s (%s): %s", p.Name, p.Checksum, dest)
 	return nil
 }
